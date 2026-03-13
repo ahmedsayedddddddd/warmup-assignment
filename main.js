@@ -203,100 +203,100 @@ function addShiftRecord(textFile, shiftObj) {
     if (cols[0].trim() === driverID && cols[2].trim() === date) {
       return {};
     }
-
-    //! calculate derived fields
-    let shiftDuration = getShiftDuration(startTime, endTime);
-    let idleTime = getIdleTime(startTime, endTime);
-    let activeTime = getActiveTime(shiftDuration, idleTime);
-    let quota = metQuota(date, activeTime);
-    let hasBonus = false;
-
-    //! build new CSV line
-    let newLine =
-      driverID +
-      "," +
-      driverName +
-      "," +
-      date +
-      "," +
-      startTime +
-      "," +
-      endTime +
-      "," +
-      shiftDuration +
-      "," +
-      idleTime +
-      "," +
-      activeTime +
-      "," +
-      quota +
-      "," +
-      hasBonus;
-
-    //! find insertion point (after last record of the driverID)
-    let insertAt = -1;
-    for (let i = lines.length - 1; i >= 1; i--) {
-      if (!lines[i].trim()) continue;
-      if (lines[i].split(",")[0].trim() === driverID) {
-        insertAt = i;
-        break;
-      }
-    }
-
-    //! remove empty lines
-    while (lines.length > 0 && lines[lines.length - 1].trim() === "") {
-      lines.pop();
-    }
-
-    if (insertAt === -1) {
-      lines.push(newLine);
-    } else {
-      lines.splice(insertAt + 1, 0, newLine);
-    }
-
-    fs.writeFileSync(textFile, lines.join("\n") + "\n", { encoding: "utf8" });
-
-    //! return new record as object
-    return {
-      driverID: driverID,
-      driverName: driverName,
-      date: date,
-      startTime: startTime,
-      endTime: endTime,
-      shiftDuration: shiftDuration,
-      idleTime: idleTime,
-      activeTime: activeTime,
-      metQuota: quota,
-      hasBonus: hasBonus,
-    };
   }
 
-  // ============================================================
-  // Function 6: setBonus(textFile, driverID, date, newValue)
-  // textFile: (typeof string) path to shifts text file
-  // driverID: (typeof string)
-  // date: (typeof string) formatted as yyyy-mm-dd
-  // newValue: (typeof boolean)
-  // Returns: nothing (void)
-  // ============================================================
-  function setBonus(textFile, driverID, date, newValue) {
-    // TODO: Implement this function
+  //! calculate derived fields
+  let shiftDuration = getShiftDuration(startTime, endTime);
+  let idleTime = getIdleTime(startTime, endTime);
+  let activeTime = getActiveTime(shiftDuration, idleTime);
+  let quota = metQuota(date, activeTime);
+  let hasBonus = false;
 
-    let raw = fs.readFileSync(textFile, { encoding: "utf8" });
-    let lines = raw.replace(/\r\n/g, "\n").replace(/\r/g, "\n").split("\n");
+  //! build new CSV line
+  let newLine =
+    driverID +
+    "," +
+    driverName +
+    "," +
+    date +
+    "," +
+    startTime +
+    "," +
+    endTime +
+    "," +
+    shiftDuration +
+    "," +
+    idleTime +
+    "," +
+    activeTime +
+    "," +
+    quota +
+    "," +
+    hasBonus;
 
-    for (let i = 0; i < lines.length; i++) {
-      if (!lines[i].trim()) continue;
-      let cols = lines[i].split(",");
-      if (cols[0].trim() === driverID && cols[2].trim() === date) {
-        cols[9] = newValue.toString();
-        lines[i] = cols.join(",");
-        break;
-      }
+  //! find insertion point (after last record of the driverID)
+  let insertAt = -1;
+  for (let i = lines.length - 1; i >= 1; i--) {
+    if (!lines[i].trim()) continue;
+    if (lines[i].split(",")[0].trim() === driverID) {
+      insertAt = i;
+      break;
     }
-
-    fs.writeFileSync(textFile, lines.join("\n"), { encoding: "utf8" });
   }
+
+  //! remove empty lines
+  while (lines.length > 0 && lines[lines.length - 1].trim() === "") {
+    lines.pop();
+  }
+
+  if (insertAt === -1) {
+    lines.push(newLine);
+  } else {
+    lines.splice(insertAt + 1, 0, newLine);
+  }
+
+  fs.writeFileSync(textFile, lines.join("\n") + "\n", { encoding: "utf8" });
+
+  //! return new record as object
+  return {
+    driverID: driverID,
+    driverName: driverName,
+    date: date,
+    startTime: startTime,
+    endTime: endTime,
+    shiftDuration: shiftDuration,
+    idleTime: idleTime,
+    activeTime: activeTime,
+    metQuota: quota,
+    hasBonus: hasBonus,
+  };
+}
+
+// ============================================================
+// Function 6: setBonus(textFile, driverID, date, newValue)
+// textFile: (typeof string) path to shifts text file
+// driverID: (typeof string)
+// date: (typeof string) formatted as yyyy-mm-dd
+// newValue: (typeof boolean)
+// Returns: nothing (void)
+// ============================================================
+function setBonus(textFile, driverID, date, newValue) {
+  // TODO: Implement this function
+
+  let raw = fs.readFileSync(textFile, { encoding: "utf8" });
+  let lines = raw.replace(/\r\n/g, "\n").replace(/\r/g, "\n").split("\n");
+
+  for (let i = 0; i < lines.length; i++) {
+    if (!lines[i].trim()) continue;
+    let cols = lines[i].split(",");
+    if (cols[0].trim() === driverID && cols[2].trim() === date) {
+      cols[9] = newValue.toString();
+      lines[i] = cols.join(",");
+      break;
+    }
+  }
+
+  fs.writeFileSync(textFile, lines.join("\n"), { encoding: "utf8" });
 }
 
 // ============================================================
