@@ -165,8 +165,8 @@ function metQuota(date, activeTime) {
     parseInt(activeParts[1]) * 60 +
     parseInt(activeParts[2]);
 
-  // Eid al-Fitr: April 10-30, 2025 > quota = 6 hours
-  // Normal daily quota = 8 hours 24 minutes
+  //? Eid al-Fitr: April 10-30, 2025 > quota = 6 hours
+  //? Normal daily quota = 8 hours 24 minutes
   let quota;
   if (year === 2025 && month === 4 && day >= 10 && day <= 30) {
     quota = 6 * 3600;
@@ -233,7 +233,7 @@ function addShiftRecord(textFile, shiftObj) {
       "," +
       hasBonus;
 
-    //! find insertion point (after last record of this driverID)
+    //! find insertion point (after last record of the driverID)
     let insertAt = -1;
     for (let i = lines.length - 1; i >= 1; i--) {
       if (!lines[i].trim()) continue;
@@ -243,13 +243,12 @@ function addShiftRecord(textFile, shiftObj) {
       }
     }
 
-    //! remove  empty lines
+    //! remove empty lines
     while (lines.length > 0 && lines[lines.length - 1].trim() === "") {
       lines.pop();
     }
 
     if (insertAt === -1) {
-      // driverID not in file -> append at end
       lines.push(newLine);
     } else {
       lines.splice(insertAt + 1, 0, newLine);
@@ -313,7 +312,6 @@ function countBonusPerMonth(textFile, driverID, month) {
   let raw = fs.readFileSync(textFile, { encoding: "utf8" });
   let lines = raw.replace(/\r\n/g, "\n").replace(/\r/g, "\n").split("\n");
 
-  // normalise month to 2-digit string e.g. "4" -> "04"
   let targetMonth = parseInt(month).toString().padStart(2, "0");
 
   let found = false;
@@ -485,7 +483,60 @@ function getRequiredHoursPerMonth(
 function getNetPay(driverID, actualHours, requiredHours, rateFile) {
   // TODO: Implement this function
 
-  
+  //!  read driver's basePay and tier
+  let raw = fs.readFileSync(rateFile, { encoding: "utf8" });
+  let lines = raw.replace(/\r\n/g, "\n").replace(/\r/g, "\n").split("\n");
+
+  let basePay = 0;
+  let tier = 0;
+
+  for (let i = 0; i < lines.length; i++) {
+    if (!lines[i].trim()) continue;
+    let cols = lines[i].split(",");
+    if (cols[0].trim() === driverID) {
+      basePay = parseInt(cols[2].trim());
+      tier = parseInt(cols[3].trim());
+      break;
+    }
+  }
+
+  //! allowed missing hours per tier with no deduction
+  let allowed;
+  if (tier === 1) allowed = 50;
+  else if (tier === 2) allowed = 20;
+  else if (tier === 3) allowed = 10;
+  else allowed = 3; // tier 4
+
+  //! get actualHours
+  let actualParts = actualHours.trim().split(":");
+  let actualTotal =
+    parseInt(actualParts[0]) * 3600 +
+    parseInt(actualParts[1]) * 60 +
+    parseInt(actualParts[2]);
+
+  //! get requiredHours
+  let reqParts = requiredHours.trim().split(":");
+  let reqTotal =
+    parseInt(reqParts[0]) * 3600 +
+    parseInt(reqParts[1]) * 60 +
+    parseInt(reqParts[2]);
+
+  //! no deduction if actual >= required
+  if (actualTotal >= reqTotal) {
+    return basePay;
+  }
+
+  let missingSeconds = reqTotal - actualTotal;
+  let missingHours = missingSeconds / 3600;
+
+  //! remove tier allowance (only full hours are billed)
+  let billable = Math.max(0, missingHours - allowed);
+  let billableHours = Math.floor(billable);
+
+  let deductionRate = Math.floor(basePay / 185);
+  let deduction = billableHours * deductionRate;
+
+  return basePay - deduction;
 }
 
 module.exports = {
