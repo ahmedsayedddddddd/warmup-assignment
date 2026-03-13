@@ -115,7 +115,12 @@ function getIdleTime(startTime, endTime) {
 function getActiveTime(shiftDuration, idleTime) {
   // TODO: Implement this function
 
-  
+  //! shiftDuration
+  let shiftParts = shiftDuration.trim().split(":");
+  let shiftTotal =
+    parseInt(shiftParts[0]) * 3600 +
+    parseInt(shiftParts[1]) * 60 +
+    parseInt(shiftParts[2]);
 }
 
 // ============================================================
