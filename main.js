@@ -151,6 +151,30 @@ function getActiveTime(shiftDuration, idleTime) {
 // ============================================================
 function metQuota(date, activeTime) {
   // TODO: Implement this function
+
+  //! get date
+  let dateParts = date.split("-");
+  let year = parseInt(dateParts[0]);
+  let month = parseInt(dateParts[1]);
+  let day = parseInt(dateParts[2]);
+
+  //! get activeTime
+  let activeParts = activeTime.trim().split(":");
+  let activeTotal =
+    parseInt(activeParts[0]) * 3600 +
+    parseInt(activeParts[1]) * 60 +
+    parseInt(activeParts[2]);
+
+  // Eid al-Fitr: April 10-30, 2025 > quota = 6 hours
+  // Normal daily quota = 8 hours 24 minutes
+  let quota;
+  if (year === 2025 && month === 4 && day >= 10 && day <= 30) {
+    quota = 6 * 3600;
+  } else {
+    quota = 8 * 3600 + 24 * 60;
+  }
+
+  return activeTotal >= quota;
 }
 
 // ============================================================
