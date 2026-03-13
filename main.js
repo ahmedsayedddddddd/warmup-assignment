@@ -121,6 +121,26 @@ function getActiveTime(shiftDuration, idleTime) {
     parseInt(shiftParts[0]) * 3600 +
     parseInt(shiftParts[1]) * 60 +
     parseInt(shiftParts[2]);
+
+  //! parse idleTime
+  let idleParts = idleTime.trim().split(":");
+  let idleTotal =
+    parseInt(idleParts[0]) * 3600 +
+    parseInt(idleParts[1]) * 60 +
+    parseInt(idleParts[2]);
+
+  let active = shiftTotal - idleTotal;
+  let h = Math.floor(active / 3600);
+  let m = Math.floor((active % 3600) / 60);
+  let s = active % 60;
+
+  return (
+    h +
+    ":" +
+    m.toString().padStart(2, "0") +
+    ":" +
+    s.toString().padStart(2, "0")
+  );
 }
 
 // ============================================================
