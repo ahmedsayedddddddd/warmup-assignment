@@ -395,6 +395,83 @@ function getRequiredHoursPerMonth(
   month,
 ) {
   // TODO: Implement this function
+
+  //! get driver's day off from rate file
+  let rateRaw = fs.readFileSync(rateFile, { encoding: "utf8" });
+  let rateLines = rateRaw
+    .replace(/\r\n/g, "\n")
+    .replace(/\r/g, "\n")
+    .split("\n");
+
+  let dayOffName = "";
+  for (let i = 0; i < rateLines.length; i++) {
+    if (!rateLines[i].trim()) continue;
+    let cols = rateLines[i].split(",");
+    if (cols[0].trim() === driverID) {
+      dayOffName = cols[1].trim().toLowerCase();
+      break;
+    }
+  }
+
+  //! map day name to JS day number (0 = Sunday ... 6 = Saturday)
+  let dayMap = {
+    sunday: 0,
+    monday: 1,
+    tuesday: 2,
+    wednesday: 3,
+    thursday: 4,
+    friday: 5,
+    saturday: 6,
+  };
+  let dayOffNum = dayMap[dayOffName];
+
+  //! loop shift records
+  let raw = fs.readFileSync(textFile, { encoding: "utf8" });
+  let lines = raw.replace(/\r\n/g, "\n").replace(/\r/g, "\n").split("\n");
+
+  let total = 0;
+
+  for (let i = 1; i < lines.length; i++) {
+    if (!lines[i].trim()) continue;
+    let cols = lines[i].split(",");
+    if (cols[0].trim() !== driverID) continue;
+
+    let dateParts = cols[2].trim().split("-");
+    let year = parseInt(dateParts[0]);
+    let recordMonth = parseInt(dateParts[1]);
+    let day = parseInt(dateParts[2]);
+
+    if (recordMonth !== month) continue;
+
+    //! skip if shift falls on driver's day off
+    let shiftDate = new Date(year, recordMonth - 1, day);
+    if (shiftDate.getDay() === dayOffNum) continue;
+
+    //! quota for the date
+    let quota;
+    if (year === 2025 && recordMonth === 4 && day >= 10 && day <= 30) {
+      quota = 6 * 3600;
+    } else {
+      quota = 8 * 3600 + 24 * 60;
+    }
+
+    total += quota;
+  }
+
+  //! decrease 2 hours per bonus
+  total -= bonusCount * 2 * 3600;
+
+  let h = Math.floor(total / 3600);
+  let m = Math.floor((total % 3600) / 60);
+  let s = total % 60;
+
+  return (
+    h +
+    ":" +
+    m.toString().padStart(2, "0") +
+    ":" +
+    s.toString().padStart(2, "0")
+  );
 }
 
 // ============================================================
@@ -407,6 +484,8 @@ function getRequiredHoursPerMonth(
 // ============================================================
 function getNetPay(driverID, actualHours, requiredHours, rateFile) {
   // TODO: Implement this function
+
+  
 }
 
 module.exports = {
