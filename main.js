@@ -309,6 +309,29 @@ function addShiftRecord(textFile, shiftObj) {
 // ============================================================
 function countBonusPerMonth(textFile, driverID, month) {
   // TODO: Implement this function
+
+  let raw = fs.readFileSync(textFile, { encoding: "utf8" });
+  let lines = raw.replace(/\r\n/g, "\n").replace(/\r/g, "\n").split("\n");
+
+  // normalise month to 2-digit string e.g. "4" -> "04"
+  let targetMonth = parseInt(month).toString().padStart(2, "0");
+
+  let found = false;
+  let count = 0;
+
+  for (let i = 1; i < lines.length; i++) {
+    if (!lines[i].trim()) continue;
+    let cols = lines[i].split(",");
+    if (cols[0].trim() !== driverID) continue;
+
+    found = true;
+    let recordMonth = cols[2].trim().split("-")[1]; // "04"
+    if (recordMonth === targetMonth && cols[9].trim() === "true") {
+      count++;
+    }
+  }
+
+  return found ? count : -1;
 }
 
 // ============================================================
